@@ -1,0 +1,61 @@
+{
+  "name": "jscad-pneumatics",
+  "version": "0.0.0",
+  "description": "Parametric JSCAD geometry for pneumatic components",
+  "type": "module",
+  "license": "MIT",
+  "repository": "https://github.com/tscircuit/jscad-pneumatics",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./vanilla": {
+      "types": "./dist/vanilla.d.ts",
+      "import": "./dist/vanilla.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "format:check": "biome format .",
+    "test": "bun test"
+  },
+  "peerDependencies": {
+    "@jscad/modeling": "^2.12.5",
+    "jscad-fiber": "^0.0.93",
+    "react": "^19.1.0"
+  },
+  "peerDependenciesMeta": {
+    "jscad-fiber": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "zod": "^3.25.67",
+    "@tscircuit/modelprinter": "https://pkg.pr.new/@tscircuit/modelprinter@7a038f3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.9",
+    "@tscircuit/alphabet": "^0.0.24",
+    "@types/react": "^19.1.0",
+    "bun-types": "^1.4.0",
+    "gl-matrix": "^3.4.4",
+    "looks-same": "^10.0.1",
+    "poppygl": "^0.0.37",
+    "react-dom": "19.1.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "jscad-fiber": "0.0.93",
+    "react": "19.1.0",
+    "three": "^0.179.1"
+  }
+}
