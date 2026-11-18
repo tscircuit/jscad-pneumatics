@@ -36,6 +36,7 @@
     "@biomejs/biome": "^2.5.9",
     "@tscircuit/circuit-json-to-drawing": "https://jscdn.tscircuit.com/@tscircuit/circuit-json-to-drawing/0.0.7.tgz",
     "@types/react": "^19.1.0",
+    "bun-match-svg": "0.0.17",
     "bun-types": "^1.4.0",
     "circuit-json-to-gltf": "0.0.166",
     "poppygl": "0.0.39",

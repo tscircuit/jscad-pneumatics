@@ -1,4 +1,4 @@
-import { Fragment, type ComponentProps } from "react"
+import type { ComponentProps } from "react"
 import { assembly } from "tscircuit"
 import { createPneumaticModel, type PneumaticModelDefinition } from "./models"
 
@@ -20,14 +20,7 @@ export type PneumaticPartProps = Omit<
 
 /** Parametric solid TSX for use inside a tscircuit CAD element. */
 export function PneumaticModel({ model }: ModelProp) {
-  const { solids } = createPneumaticModel(model)
-  return (
-    <>
-      {solids.map((solid, index) => (
-        <Fragment key={index}>{solid}</Fragment>
-      ))}
-    </>
-  )
+  return createPneumaticModel(model).geometry
 }
 
 /** Add a pneumatic part to a tscircuit assembly. */

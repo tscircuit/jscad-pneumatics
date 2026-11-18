@@ -1,7 +1,6 @@
-import type { ReactElement } from "react"
+import type { ReactElement, ReactNode } from "react"
 import { jscad } from "tscircuit"
 
-export type Solid = ReactElement
 export type Vec3 = [number, number, number]
 export type Direction = "-x" | "+x" | "-y" | "+y" | "-z" | "+z"
 export type PneumaticPort = {
@@ -21,41 +20,20 @@ export type PneumaticPort = {
 )
 
 export interface PneumaticGeometry {
-  solids: Solid[]
+  geometry: ReactElement
   ports: PneumaticPort[]
 }
 
-export function paint(color: [number, number, number], solid: Solid) {
-  return <jscad.colorize color={color}>{solid}</jscad.colorize>
+export function Metallic({ children }: { children: ReactNode }) {
+  return <jscad.colorize color={[0.61, 0.64, 0.69]}>{children}</jscad.colorize>
 }
 
-export const metallic = (solid: Solid) => paint([0.61, 0.64, 0.69], solid)
-export const dark = (solid: Solid) => paint([0.15, 0.17, 0.19], solid)
-export const brass = (solid: Solid) => paint([0.74, 0.54, 0.26], solid)
-
-export function box(size: Vec3, center: Vec3): Solid {
-  return <jscad.cuboid size={size} center={center} />
+export function Dark({ children }: { children: ReactNode }) {
+  return <jscad.colorize color={[0.15, 0.17, 0.19]}>{children}</jscad.colorize>
 }
 
-export function rotate(angles: Vec3, solid: Solid): Solid {
-  return <jscad.rotate angles={angles}>{solid}</jscad.rotate>
-}
-
-export function translate(offset: Vec3, solid: Solid): Solid {
-  return <jscad.translate offset={offset}>{solid}</jscad.translate>
-}
-
-export function subtract(solid: Solid, ...cutters: Solid[]): Solid {
-  return (
-    <jscad.subtract>
-      {solid}
-      {cutters.map((cutter, index) => (
-        <jscad.translate key={index} offset={[0, 0, 0]}>
-          {cutter}
-        </jscad.translate>
-      ))}
-    </jscad.subtract>
-  )
+export function Brass({ children }: { children: ReactNode }) {
+  return <jscad.colorize color={[0.74, 0.54, 0.26]}>{children}</jscad.colorize>
 }
 
 const outwardAngles: Record<Direction, Vec3> = {
@@ -65,16 +43,6 @@ const outwardAngles: Record<Direction, Vec3> = {
   "-y": [Math.PI / 2, 0, 0],
   "+z": [0, 0, 0],
   "-z": [Math.PI, 0, 0],
-}
-
-export function round(
-  diameter: number,
-  length: number,
-  center: Vec3,
-  axis: "x" | "y" | "z" = "z",
-  segments = 48,
-): Solid {
-  return axialSolid(diameter, length, center, `+${axis}`, segments)
 }
 
 const unitVectors: Record<Direction, Vec3> = {
@@ -99,14 +67,24 @@ export function along(
   ]
 }
 
-export function axialSolid(
-  diameter: number,
-  length: number,
-  center: Vec3,
-  direction: Direction,
+interface AxialSolidProps {
+  diameter: number
+  length: number
+  center: Vec3
+  direction?: Direction
+  segments?: number
+  topOutlineName?: string
+}
+
+/** An axial polygon extrusion, with an optional datum at its outward face. */
+export function AxialSolid({
+  diameter,
+  length,
+  center,
+  direction = "+z",
   segments = 48,
-  topOutlineName?: string,
-): Solid {
+  topOutlineName,
+}: AxialSolidProps) {
   const points = Array.from(
     { length: segments },
     (_, index): [number, number] => {
@@ -125,22 +103,6 @@ export function axialSolid(
         </jscad.extrudeLinear>
       </jscad.rotate>
     </jscad.translate>
-  )
-}
-
-/** Make two planar flats on opposite ends of an X-axis barrel. */
-export function flatEnds(
-  solid: Solid,
-  centerX: number,
-  diameter: number,
-  retainedLength: number,
-  height: number,
-) {
-  const size: Vec3 = [diameter + 0.02, diameter + 0.02, height + 0.02]
-  return subtract(
-    solid,
-    box(size, [centerX - (retainedLength + size[0]) / 2, 0, height / 2]),
-    box(size, [centerX + (retainedLength + size[0]) / 2, 0, height / 2]),
   )
 }
 
@@ -180,25 +142,29 @@ export function threadDiameter(thread: string): number {
     : (pipeInchOD[size] ?? nominal / 25.4) * 25.4
 }
 
-export function bore(
-  geometry: Solid,
-  diameter: number,
-  depth: number,
-  port: Pick<PneumaticPort, "center" | "direction">,
-  outlineName?: string,
-): Solid {
-  const cutterLength = depth + 0.02
-  // A named outline is a measurement datum. Its top is the actual port face.
+/** Place a subtraction tool at a mating face. A named outline measures the actual face. */
+export function Bore({
+  diameter,
+  depth,
+  port,
+  outlineName,
+}: {
+  diameter: number
+  depth: number
+  port: Pick<PneumaticPort, "center" | "direction">
+  outlineName?: string
+}) {
+  const length = depth + 0.02
   const overrun = outlineName ? 0 : 0.01
-  const cutter = axialSolid(
-    diameter,
-    cutterLength,
-    along(port.center, port.direction, overrun - cutterLength / 2),
-    port.direction,
-    48,
-    outlineName,
+  return (
+    <AxialSolid
+      diameter={diameter}
+      length={length}
+      center={along(port.center, port.direction, overrun - length / 2)}
+      direction={port.direction}
+      topOutlineName={outlineName}
+    />
   )
-  return subtract(geometry, cutter)
 }
 
 export function threaded(

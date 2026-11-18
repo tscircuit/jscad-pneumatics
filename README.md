@@ -43,10 +43,12 @@ and the distance between the solenoid's two named port faces.
 
 `PneumaticModel` exposes the same solid JSX for direct use in
 `assembly.printedpart`, including with transforms. It uses the primitives
-exported by `tscircuit` under `jscad`. Core serializes those primitives into
-a parametric CAD operation tree. `createPneumaticModel` also returns named
-port centers in local millimeters, outward directions, and nominal connection
-designations.
+exported by `tscircuit` under `jscad`. Part components declare their primitives,
+transforms, and booleans as JSX. Material components such as `<Metallic>` wrap
+the shapes they color.
+`createPneumaticModel` returns the part's JSX in `geometry` and its mating
+ports in `ports`. Port centers are in local millimeters and include an
+outward direction and nominal connection designation.
 
 ## Bench references
 
@@ -86,3 +88,14 @@ bun run drawings
 destination. The exporter uses Circuit JSON Drawing 0.0.7 so authored notes
 appear alongside the dimensions. It caches the resolved geometry for each part
 across views. CI attaches the generated files to each successful run.
+
+## Drawing snapshots
+
+`bun test` renders the TSX drawing catalog through the same exporter as
+`bun run drawings` and compares all 12 sheets visually against the checked-in
+SVGs in [tests/**snapshots**](tests/__snapshots__). Review the rendered sheets
+before updating the baselines.
+
+```sh
+bun test --update-snapshots tests/bench-drawing-snapshots.test.tsx
+```

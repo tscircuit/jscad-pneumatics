@@ -22,3 +22,9 @@ jobs:
           name: pneumatic-drawings
           path: dist/drawings/
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: drawing-snapshot-diffs
+          path: tests/__snapshots__/*.diff.png
+          if-no-files-found: ignore
