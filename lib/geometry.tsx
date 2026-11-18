@@ -187,10 +187,13 @@ export function bore(
   port: Pick<PneumaticPort, "center" | "direction">,
   outlineName?: string,
 ): Solid {
+  const cutterLength = depth + 0.02
+  // A named outline is a measurement datum. Its top is the actual port face.
+  const overrun = outlineName ? 0 : 0.01
   const cutter = axialSolid(
     diameter,
-    depth + 0.02,
-    along(port.center, port.direction, -depth / 2),
+    cutterLength,
+    along(port.center, port.direction, overrun - cutterLength / 2),
     port.direction,
     48,
     outlineName,

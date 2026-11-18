@@ -44,7 +44,7 @@ test("bench TSX emits one dimensioned drawing per isolated part", async () => {
     "overall-depth": "22.22 mm",
     "overall-length": "27.74 mm",
     "overall-height": "39.6 mm",
-    "port-face-spacing": "17.496 mm",
+    "port-face-spacing": "17.476 mm",
   })
   expect(dimensionsForPart("straight-fitting")).toMatchObject({
     "overall-length": "22.38 mm",
