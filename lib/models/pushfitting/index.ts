@@ -11,7 +11,7 @@ import {
   threaded,
   threadDiameter,
   type Direction,
-  type Geom3,
+  type Solid,
   type PneumaticGeometry,
   type PneumaticPort,
   type Vec3,
@@ -40,7 +40,7 @@ export function createPushFittingGeom(
   const z = Math.max(diameter, hexDiameter, noseDiameter) / 2
   const tee = props.shape === "tee"
   const barrelMaterial = tee ? dark : metallic
-  const solids: Geom3[] = []
+  const solids: Solid[] = []
   const ports: PneumaticPort[] = []
 
   function tubeEnd(
@@ -78,7 +78,9 @@ export function createPushFittingGeom(
         }),
       ),
     )
-    solids.push(dark(bore(ring, tube * 1.02, collar + 0.1, port)))
+    solids.push(
+      dark(bore(ring, tube * 1.02, collar + 0.1, port, `${name}Bore`)),
+    )
     ports.push(port)
   }
 

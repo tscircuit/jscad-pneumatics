@@ -1,15 +1,9 @@
 import { defineConfig } from "tsup"
 
 export default defineConfig({
-  entry: ["lib/index.tsx", "lib/vanilla.ts"],
+  entry: ["lib/index.tsx"],
   format: ["esm"],
   clean: true,
   dts: true,
-  external: [
-    "@tscircuit/modelprinter",
-    "@jscad/modeling",
-    "react",
-    "jscad-fiber",
-    "zod",
-  ],
+  external: ["@tscircuit/modelprinter", "react", "tscircuit"],
 })

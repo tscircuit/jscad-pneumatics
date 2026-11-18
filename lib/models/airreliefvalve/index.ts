@@ -1,4 +1,3 @@
-import jscad from "@jscad/modeling"
 import {
   airReliefValveModelPropsSchema,
   type AirReliefValveModelPropsInput,
@@ -7,10 +6,12 @@ import {
   bore,
   dark,
   metallic,
+  rotate,
+  translate,
   round,
   threaded,
   threadDiameter,
-  type Geom3,
+  type Solid,
   type PneumaticGeometry,
   type PneumaticPort,
   type Vec3,
@@ -34,7 +35,7 @@ export function createAirReliefValveGeom(
     threaded("gauge", [0, -w / 2, z], "-y", gaugeThread),
     threaded("auxgauge", [0, w / 2, z], "+y", gaugeThread),
   ]
-  const solids: Geom3[] = [dark(round(od * 0.75, h * 0.27, [0, 0, h * 0.135]))]
+  const solids: Solid[] = [dark(round(od * 0.75, h * 0.27, [0, 0, h * 0.135]))]
   for (const port of ports) {
     if (port.kind !== "thread") continue
     const axis = port.direction[1] as "x" | "y"
@@ -83,12 +84,7 @@ export function createAirReliefValveGeom(
       portThread: gaugeThread,
     })
     for (const solid of gauge.solids) {
-      solids.push(
-        jscad.transforms.translate(
-          [0, -w / 2, z],
-          jscad.transforms.rotateX(Math.PI / 2, solid),
-        ),
-      )
+      solids.push(translate([0, -w / 2, z], rotate([Math.PI / 2, 0, 0], solid)))
     }
   }
   return { solids, ports }

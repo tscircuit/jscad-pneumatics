@@ -1,13 +1,8 @@
-import jscad from "@jscad/modeling"
-import type { Geom3 } from "@jscad/modeling/src/geometries/types"
-import type { Vec3 } from "@jscad/modeling/src/maths/types"
+import type { ReactElement } from "react"
+import { jscad } from "tscircuit"
 
-const { colorize } = jscad.colors
-const { subtract } = jscad.booleans
-const { cylinder, cuboid } = jscad.primitives
-const { rotateX, rotateY, translate } = jscad.transforms
-
-export type { Geom3, Vec3 }
+export type Solid = ReactElement
+export type Vec3 = [number, number, number]
 export type Direction = "-x" | "+x" | "-y" | "+y" | "-z" | "+z"
 export type PneumaticPort = {
   name: string
@@ -26,19 +21,50 @@ export type PneumaticPort = {
 )
 
 export interface PneumaticGeometry {
-  solids: Geom3[]
+  solids: Solid[]
   ports: PneumaticPort[]
 }
 
-export const metallic = (geometry: Geom3) =>
-  colorize([0.61, 0.64, 0.69, 1], geometry)
-export const dark = (geometry: Geom3) =>
-  colorize([0.15, 0.17, 0.19, 1], geometry)
-export const brass = (geometry: Geom3) =>
-  colorize([0.74, 0.54, 0.26, 1], geometry)
+export function paint(color: [number, number, number], solid: Solid) {
+  return <jscad.colorize color={color}>{solid}</jscad.colorize>
+}
 
-export function box(size: Vec3, center: Vec3): Geom3 {
-  return cuboid({ size, center })
+export const metallic = (solid: Solid) => paint([0.61, 0.64, 0.69], solid)
+export const dark = (solid: Solid) => paint([0.15, 0.17, 0.19], solid)
+export const brass = (solid: Solid) => paint([0.74, 0.54, 0.26], solid)
+
+export function box(size: Vec3, center: Vec3): Solid {
+  return <jscad.cuboid size={size} center={center} />
+}
+
+export function rotate(angles: Vec3, solid: Solid): Solid {
+  return <jscad.rotate angles={angles}>{solid}</jscad.rotate>
+}
+
+export function translate(offset: Vec3, solid: Solid): Solid {
+  return <jscad.translate offset={offset}>{solid}</jscad.translate>
+}
+
+export function subtract(solid: Solid, ...cutters: Solid[]): Solid {
+  return (
+    <jscad.subtract>
+      {solid}
+      {cutters.map((cutter, index) => (
+        <jscad.translate key={index} offset={[0, 0, 0]}>
+          {cutter}
+        </jscad.translate>
+      ))}
+    </jscad.subtract>
+  )
+}
+
+const outwardAngles: Record<Direction, Vec3> = {
+  "+x": [0, Math.PI / 2, 0],
+  "-x": [0, -Math.PI / 2, 0],
+  "+y": [-Math.PI / 2, 0, 0],
+  "-y": [Math.PI / 2, 0, 0],
+  "+z": [0, 0, 0],
+  "-z": [Math.PI, 0, 0],
 }
 
 export function round(
@@ -47,15 +73,8 @@ export function round(
   center: Vec3,
   axis: "x" | "y" | "z" = "z",
   segments = 48,
-): Geom3 {
-  const solid = cylinder({ radius: diameter / 2, height: length, segments })
-  const aligned =
-    axis === "x"
-      ? rotateY(Math.PI / 2, solid)
-      : axis === "y"
-        ? rotateX(Math.PI / 2, solid)
-        : solid
-  return translate(center, aligned)
+): Solid {
+  return axialSolid(diameter, length, center, `+${axis}`, segments)
 }
 
 const unitVectors: Record<Direction, Vec3> = {
@@ -86,13 +105,42 @@ export function axialSolid(
   center: Vec3,
   direction: Direction,
   segments = 48,
-): Geom3 {
-  return round(
-    diameter,
-    length,
-    center,
-    direction[1] as "x" | "y" | "z",
-    segments,
+  topOutlineName?: string,
+): Solid {
+  const points = Array.from(
+    { length: segments },
+    (_, index): [number, number] => {
+      const angle = (index * 2 * Math.PI) / segments
+      return [
+        (diameter / 2) * Math.cos(angle),
+        (diameter / 2) * Math.sin(angle),
+      ]
+    },
+  )
+  return (
+    <jscad.translate offset={along(center, direction, -length / 2)}>
+      <jscad.rotate angles={outwardAngles[direction]}>
+        <jscad.extrudeLinear height={length} topOutlineName={topOutlineName}>
+          <jscad.polygon points={points} />
+        </jscad.extrudeLinear>
+      </jscad.rotate>
+    </jscad.translate>
+  )
+}
+
+/** Make two planar flats on opposite ends of an X-axis barrel. */
+export function flatEnds(
+  solid: Solid,
+  centerX: number,
+  diameter: number,
+  retainedLength: number,
+  height: number,
+) {
+  const size: Vec3 = [diameter + 0.02, diameter + 0.02, height + 0.02]
+  return subtract(
+    solid,
+    box(size, [centerX - (retainedLength + size[0]) / 2, 0, height / 2]),
+    box(size, [centerX + (retainedLength + size[0]) / 2, 0, height / 2]),
   )
 }
 
@@ -133,16 +181,19 @@ export function threadDiameter(thread: string): number {
 }
 
 export function bore(
-  geometry: Geom3,
+  geometry: Solid,
   diameter: number,
   depth: number,
   port: Pick<PneumaticPort, "center" | "direction">,
-): Geom3 {
+  outlineName?: string,
+): Solid {
   const cutter = axialSolid(
     diameter,
     depth + 0.02,
     along(port.center, port.direction, -depth / 2),
     port.direction,
+    48,
+    outlineName,
   )
   return subtract(geometry, cutter)
 }

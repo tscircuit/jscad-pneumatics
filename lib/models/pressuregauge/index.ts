@@ -1,4 +1,3 @@
-import jscad from "@jscad/modeling"
 import {
   pressureGaugeModelPropsSchema,
   type PressureGaugeModelPropsInput,
@@ -9,15 +8,15 @@ import {
   brass,
   dark,
   metallic,
+  paint,
+  rotate,
+  translate,
   round,
   threaded,
   threadDiameter,
   type PneumaticGeometry,
   type Vec3,
 } from "../../geometry"
-
-const { rotateZ, rotateX, translate } = jscad.transforms
-const { colorize } = jscad.colors
 
 /** The dial faces +Z for back mounts and -Y for bottom mounts. */
 export function createPressureGaugeGeom(
@@ -51,7 +50,7 @@ export function createPressureGaugeGeom(
       ]),
     ),
     dark(bezel),
-    colorize([0.96, 0.96, 0.92, 1], dial),
+    paint([0.96, 0.96, 0.92], dial),
   ]
   const detailZ = dialZ - collar * 0.74
   for (let index = 0; index <= 20; index++) {
@@ -61,20 +60,23 @@ export function createPressureGaugeGeom(
       [len, d * 0.008, collar * 0.06],
       [d * 0.385 - len / 2, 0, detailZ],
     )
-    solids.push(dark(rotateZ(angle, tick)))
+    solids.push(dark(rotate([0, 0, angle], tick)))
   }
   const readingAngle = ((225 - (270 * p.reading) / p.range) * Math.PI) / 180
   const needle = box(
     [d * 0.35, d * 0.021, collar * 0.075],
     [d * 0.112, 0, detailZ + collar * 0.08],
   )
-  solids.push(colorize([0.65, 0.12, 0.12, 1], rotateZ(readingAngle, needle)))
+  solids.push(paint([0.65, 0.12, 0.12], rotate([0, 0, readingAngle], needle)))
   solids.push(
     metallic(round(d * 0.075, collar * 0.12, [0, 0, detailZ + collar * 0.12])),
   )
   const body = bottom
     ? solids.map((solid) =>
-        translate([0, 0, d / 2 + p.stemLength], rotateX(Math.PI / 2, solid)),
+        translate(
+          [0, 0, d / 2 + p.stemLength],
+          rotate([Math.PI / 2, 0, 0], solid),
+        ),
       )
     : solids
   const boreOD = p.innerPortThread

@@ -1,25 +1,41 @@
-import { Colorize, Custom } from "jscad-fiber/model"
-import { createPneumaticModel, type PneumaticModelDefinition } from "./vanilla"
+import { Fragment, type ComponentProps } from "react"
+import { assembly } from "tscircuit"
+import { createPneumaticModel, type PneumaticModelDefinition } from "./models"
 
-export * from "./vanilla"
+export { createPneumaticModel }
+export type { Direction, PneumaticGeometry, PneumaticPort } from "./geometry"
+export type { PneumaticModelDefinition } from "./models"
+export {
+  PneumaticPartDrawing,
+  type PneumaticPartDrawingProps,
+} from "./PneumaticPartDrawing"
 
-/** Render a ModelPrinter pneumatic model in jscad-fiber. */
-export function PneumaticModel({
-  model,
-}: {
-  model: string | PneumaticModelDefinition
-}) {
+type ModelProp = { model: string | PneumaticModelDefinition }
+
+export type PneumaticPartProps = Omit<
+  ComponentProps<typeof assembly.printedpart>,
+  "jscad" | "model" | "modelUrl" | "cadModel"
+> &
+  ModelProp
+
+/** Parametric solid TSX for use inside a tscircuit CAD element. */
+export function PneumaticModel({ model }: ModelProp) {
   const { solids } = createPneumaticModel(model)
   return (
     <>
-      {solids.map((solid, index) => {
-        const [r, g, b] = solid.color ?? [0.61, 0.64, 0.69]
-        return (
-          <Colorize key={index} color={[r, g, b]}>
-            <Custom geometry={solid} />
-          </Colorize>
-        )
-      })}
+      {solids.map((solid, index) => (
+        <Fragment key={index}>{solid}</Fragment>
+      ))}
     </>
+  )
+}
+
+/** Add a pneumatic part to a tscircuit assembly. */
+export function PneumaticPart({ model, ...partProps }: PneumaticPartProps) {
+  return (
+    <assembly.printedpart
+      {...partProps}
+      jscad={<PneumaticModel model={model} />}
+    />
   )
 }

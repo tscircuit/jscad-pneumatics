@@ -1,10 +1,10 @@
-import jscad from "@jscad/modeling"
 import {
   airDirectionalValveModelPropsSchema,
   type AirDirectionalValveModelPropsInput,
 } from "@tscircuit/modelprinter"
 import {
   box,
+  flatEnds,
   bore,
   dark,
   metallic,
@@ -38,9 +38,12 @@ export function createAirDirectionalValveGeom(
       threaded("P", [offset - processL / 2, 0, portZ], "-x", inlet),
       threaded("A", [offset + processL / 2, 0, portZ], "+x", work),
     ]
-    let base = jscad.booleans.intersect(
+    let base = flatEnds(
       round(diameter * 0.91, baseHeight, [offset, 0, baseHeight / 2]),
-      box([processL, diameter, baseHeight], [offset, 0, baseHeight / 2]),
+      offset,
+      diameter,
+      processL,
+      baseHeight,
     )
     for (const port of ports)
       base = bore(
@@ -48,6 +51,7 @@ export function createAirDirectionalValveGeom(
         threadDiameter(port.name === "P" ? inlet : work) * 0.84,
         processL * 0.27,
         port,
+        port.name === "P" ? "inletBore" : "workBore",
       )
     if (p.mountPitch !== undefined) {
       for (const y of [-p.mountPitch / 2, p.mountPitch / 2]) {

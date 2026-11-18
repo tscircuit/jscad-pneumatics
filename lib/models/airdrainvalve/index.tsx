@@ -1,4 +1,4 @@
-import jscad from "@jscad/modeling"
+import { jscad } from "tscircuit"
 import {
   airDrainValveModelPropsSchema,
   type AirDrainValveModelPropsInput,
@@ -7,6 +7,8 @@ import {
   bore,
   brass,
   metallic,
+  rotate,
+  translate,
   round,
   threaded,
   threadDiameter,
@@ -37,27 +39,26 @@ export function createAirDrainValveGeom(
   ]
   if (p.wing) {
     const x = p.wingWidth / 2
-    const profile = jscad.primitives.polygon({
-      points: [
-        [-x, l],
-        [-x * 0.91, l * 0.81],
-        [-x * 0.34, l * 0.72],
-        [x * 0.34, l * 0.72],
-        [x * 0.91, l * 0.81],
-        [x, l],
-        [x * 0.48, l],
-        [0, l * 0.89],
-        [-x * 0.48, l],
-      ],
-    })
+    const points: [number, number][] = [
+      [-x, l],
+      [-x * 0.91, l * 0.81],
+      [-x * 0.34, l * 0.72],
+      [x * 0.34, l * 0.72],
+      [x * 0.91, l * 0.81],
+      [x, l],
+      [x * 0.48, l],
+      [0, l * 0.89],
+      [-x * 0.48, l],
+    ]
     const thickness = hexOD * 0.117
-    const wing = jscad.extrusions.extrudeLinear({ height: thickness }, profile)
+    const wing = (
+      <jscad.extrudeLinear height={thickness}>
+        <jscad.polygon points={points} />
+      </jscad.extrudeLinear>
+    )
     solids.push(
       metallic(
-        jscad.transforms.translate(
-          [0, thickness / 2, 0],
-          jscad.transforms.rotateX(Math.PI / 2, wing),
-        ),
+        translate([0, thickness / 2, 0], rotate([Math.PI / 2, 0, 0], wing)),
       ),
     )
   }

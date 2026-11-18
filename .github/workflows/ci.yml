@@ -16,3 +16,9 @@ jobs:
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
+      - run: bun run drawings
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pneumatic-drawings
+          path: dist/drawings/
+          if-no-files-found: error

@@ -1,4 +1,3 @@
-import jscad from "@jscad/modeling"
 import {
   airRegulatorModelPropsSchema,
   type AirRegulatorModelPropsInput,
@@ -6,6 +5,7 @@ import {
 import {
   bore,
   box,
+  subtract,
   brass,
   dark,
   metallic,
@@ -46,11 +46,11 @@ export function createAirRegulatorGeom(
     )
     const nutZone = Math.min(bodyLength * 0.33, od * 0.77)
     const barrelLength = bodyLength - nutZone
-    const barrel = jscad.booleans.intersect(
+    const barrel = subtract(
       round(od, barrelLength, [bodyLeft + barrelLength / 2, 0, z], "x"),
       box(
-        [barrelLength + 0.01, od * 0.95, od],
-        [bodyLeft + barrelLength / 2, od * 0.025, z],
+        [barrelLength + 0.02, od, od + 0.02],
+        [bodyLeft + barrelLength / 2, outletY - od / 2, z],
       ),
     )
     const postX = bodyLeft + barrelLength

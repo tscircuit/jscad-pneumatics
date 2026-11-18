@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
@@ -10,5 +10,5 @@
     "jsx": "react-jsx",
     "types": ["bun-types"]
   },
-  "include": ["lib", "tests"]
+  "include": ["lib", "tests", "examples", "scripts"]
 }

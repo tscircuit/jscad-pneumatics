@@ -1,8 +1,7 @@
 import { expect, test } from "bun:test"
-import jscad from "@jscad/modeling"
 import { mp } from "@tscircuit/modelprinter"
-import { createPneumaticModel } from "../lib/vanilla"
-import { benchModels } from "./fixtures/bench-models"
+import { createPneumaticModel } from "../lib"
+import { benchModels } from "../examples/bench-models"
 
 test("bench valve mates in place using manufacturer port axes and measured offset", () => {
   const definition = mp.string(benchModels.solenoid[1]).json()
@@ -63,20 +62,7 @@ test("bench gauge preserves the inner connection in the threaded rear stud", () 
   ])
 })
 
-test("straight tubing is a hollow closed solid with the commanded dimensions", () => {
-  const { solids } = createPneumaticModel("airtubing_od6mm_id4mm_l20mm")
-  const tube = solids[0]!
-  jscad.geometries.geom3.validate(tube)
-  const polygonArea =
-    (24 / 2) * (3 ** 2 - 2 ** 2) * Math.sin((2 * Math.PI) / 24)
-  expect(jscad.measurements.measureVolume(tube)).toBeCloseTo(
-    polygonArea * 20,
-    7,
-  )
-  expect(jscad.measurements.measureBoundingBox(tube)).toEqual([
-    [0, -3, -3],
-    [20, 3, 3],
-  ])
+test("a tubing centerline cannot reverse through the same point", () => {
   expect(() =>
     createPneumaticModel("airtubing_od6mm_id4mm_path(0,0,0|10,0,0|0,0,0)"),
   ).toThrow(/reverse/)

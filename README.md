@@ -1,42 +1,58 @@
-# jscad-pneumatics
+# tsx-pneumatics
 
-Parametric exterior geometry and named connection points for pneumatic CAD
-assemblies. [ModelPrinter](https://github.com/tscircuit/modelprinter) owns the
-string grammar, unit normalization, and parameter schemas. This library turns
-those definitions into JSCAD solids.
+Parametric pneumatic parts and dimensioned engineering drawings authored in
+tscircuit TSX. [ModelPrinter](https://github.com/tscircuit/modelprinter) owns the
+model strings and units. tscircuit compiles the solid JSX and
+`assembly.drawing` elements into Circuit JSON, and
+[circuit-json-to-drawing](https://github.com/tscircuit/circuit-json-to-drawing)
+generates SVG sheets.
 
-## Usage
+## Author a part and its drawing
 
-Use the vanilla entry point from a JSCAD script.
+```tsx
+import { assembly } from "tscircuit"
+import { PneumaticPart, PneumaticPartDrawing } from "tsx-pneumatics"
 
-```ts
-import { createPneumaticModel } from "jscad-pneumatics/vanilla"
-
-const { solids, ports } = createPneumaticModel(
-  "pushfitting_straight_male_tubeod0.25in_thread(10-32)_l22.38mm",
-)
+export default function FittingSheet() {
+  return (
+    <assembly.device>
+      <PneumaticPart
+        name="adapter"
+        model="pushfitting_straight_male_tubeod0.25in_thread(10-32)_l22.38mm"
+      />
+      <PneumaticPartDrawing
+        name="adapter-sheet"
+        title="Straight push fitting"
+        partRef=".adapter"
+        notes={["1/4 in tube OD. 10-32 male thread."]}
+        endAnnotations={
+          <assembly.drawing.dimension edgeRef=".adapter > .tube1Bore" />
+        }
+      />
+    </assembly.device>
+  )
+}
 ```
 
-The same function accepts a parsed ModelPrinter definition. Use
-`<PneumaticModel model={model} />` from the main entry point inside
-jscad-fiber. Both entry points use the same geometry.
+`PneumaticPartDrawing` supplies top, front, right-end, and isometric views.
+Core measures the three overall dimensions from the generated solid. Add
+`assembly.drawing.dimension` children for named CAD outlines or feature
+spacing. The
+[bench catalog](examples/bench-drawings.tsx) measures the fitting socket
+and the distance between the solenoid's two named port faces.
 
-A port reports its center in local millimeters, an outward cardinal direction,
-and its connection type. Threaded ports retain the nominal designation and
-gender. Tube ports specify tubing OD and barb ports specify hose ID. For an
-atmospheric cap such as the round solenoid valve's exhaust, the vent location
-represents the center of its exhaust holes. A gauge with a dual-thread stud
-reports the outer male designation and optional inner female designation at
-the same center.
+`PneumaticModel` exposes the same solid JSX for direct use in
+`assembly.printedpart`, including with transforms. It uses the primitives
+exported by `tscircuit` under `jscad`. Core serializes those primitives into
+a parametric CAD operation tree. `createPneumaticModel` also returns named
+port centers in local millimeters, outward directions, and nominal connection
+designations.
 
-## Bench geometry
+## Bench references
 
-The fixtures in [tests/fixtures/bench-models.ts](tests/fixtures/bench-models.ts)
-include the full model strings. The corresponding four-view renders are in [tests/**snapshots**](tests/__snapshots__). The
-[pneumatic bench project](https://pneumatic-usbc-bench.seveibar.chatgpt.site/parts.html)
-provides the assembly TSX, dimensions, and reference STEP files. The models here
-are built from JSCAD primitives. The reference files were used for visual and
-dimensional comparison and are not included in the package.
+The [bench parts catalog](https://pneumatic-usbc-bench.seveibar.chatgpt.site/parts.html)
+provides the source TSX and vendor CAD used to compare exteriors and port locations.
+View [all model strings and variants](examples/bench-models.ts).
 
 | Model                 | Bench reference                                                                                                          | Geometry represented                                                                                      |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
@@ -49,12 +65,12 @@ dimensional comparison and are not included in the package.
 | `airdrainvalve`       | [Parker brass catalog](https://www.parker.com/Literature/Brass%20Products/3580-Core-Brass.pdf)                           | Body hex, threaded inlet, and wing handle                                                                 |
 | `airtubing`           | [Bench tubing](https://www.clippard.com/part/URT1-0805-BLT-050)                                                          | Hollow cross section swept along a straight length or a supplied sampled centerline                       |
 
-These models represent exterior packaging and connection locations. Threads use
-simplified envelopes and detailed vendor fit work still calls for the vendor
-STEP. The initial contracts come from [ModelPrinter PR #144](https://github.com/tscircuit/modelprinter/pull/144).
-The initial package pins the ModelPrinter PR preview.
+These models support assembly layout. Thread profiles and fine housing details
+are simplified, and routed tubing uses hulls along sampled centerlines.
+The initial model contract dependency is pinned to the
+[ModelPrinter #144 package preview](https://github.com/tscircuit/modelprinter/pull/144).
 
-## Development
+## Build
 
 ```sh
 bun install --frozen-lockfile
@@ -62,7 +78,11 @@ bun run typecheck
 bun run format:check
 bun test
 bun run build
+bun run drawings
 ```
 
-Use `BUN_UPDATE_SNAPSHOTS=1 bun test tests/bench-snapshots.test.ts` after
-intentional geometry changes. Inspect the four views before accepting them.
+`bun run drawings` writes 12 SVG sheets and the Circuit JSON to
+`dist/drawings/`. Pass a directory after `drawings` to choose another
+destination. The exporter uses Circuit JSON Drawing 0.0.7 so authored notes
+appear alongside the dimensions. It caches the resolved geometry for each part
+across views. CI attaches the generated files to each successful run.

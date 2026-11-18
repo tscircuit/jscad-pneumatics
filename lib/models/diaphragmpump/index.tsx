@@ -1,4 +1,4 @@
-import jscad from "@jscad/modeling"
+import { jscad } from "tscircuit"
 import {
   diaphragmPumpModelPropsSchema,
   type DiaphragmPumpModelPropsInput,
@@ -62,19 +62,21 @@ export function createDiaphragmPumpGeom(
   }
   const motorCover = motorLength * (p.motor === "brusheddc" ? 0.15 : 0.23)
   const capDepth = h * 0.13
-  const cap = jscad.primitives.roundedCuboid({
-    size: [headLength, w, capDepth],
-    center: [headX, 0, h - capDepth * 0.61],
-    roundRadius: Math.min(headLength, w, capDepth) * 0.14,
-    segments: 16,
-  })
+  const cap = (
+    <jscad.roundedCuboid
+      size={[headLength, w, capDepth]}
+      center={[headX, 0, h - capDepth * 0.61]}
+      roundRadius={Math.min(headLength, w, capDepth) * 0.14}
+    />
+  )
   const headHeight = h - capDepth - baseHeight
-  const head = jscad.primitives.roundedCuboid({
-    size: [headLength, w * 0.95, headHeight],
-    center: [headX, 0, baseHeight + headHeight / 2],
-    roundRadius: Math.min(headLength, w, headHeight) * 0.065,
-    segments: 16,
-  })
+  const head = (
+    <jscad.roundedCuboid
+      size={[headLength, w * 0.95, headHeight]}
+      center={[headX, 0, baseHeight + headHeight / 2]}
+      roundRadius={Math.min(headLength, w, headHeight) * 0.065}
+    />
+  )
   const solids = [
     dark(base),
     dark(head),

@@ -1,12 +1,13 @@
 {
-  "name": "jscad-pneumatics",
+  "name": "tsx-pneumatics",
   "version": "0.0.0",
-  "description": "Parametric JSCAD geometry for pneumatic components",
+  "description": "Parametric pneumatic parts and dimensioned drawings in tscircuit TSX",
   "type": "module",
   "license": "MIT",
-  "repository": "https://github.com/tscircuit/jscad-pneumatics",
+  "repository": "https://github.com/tscircuit/tsx-pneumatics",
   "files": [
-    "dist"
+    "dist/*.js",
+    "dist/*.d.ts"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -14,48 +15,33 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./vanilla": {
-      "types": "./dist/vanilla.d.ts",
-      "import": "./dist/vanilla.js"
     }
   },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format .",
-    "test": "bun test"
+    "test": "bun test",
+    "drawings": "bun scripts/export-drawings.tsx"
   },
   "peerDependencies": {
-    "@jscad/modeling": "^2.12.5",
-    "jscad-fiber": "^0.0.93",
-    "react": "^19.1.0"
-  },
-  "peerDependenciesMeta": {
-    "jscad-fiber": {
-      "optional": true
-    },
-    "react": {
-      "optional": true
-    }
+    "react": "19.1.0",
+    "tscircuit": "^0.0.3237"
   },
   "dependencies": {
-    "zod": "^3.25.67",
-    "@tscircuit/modelprinter": "https://pkg.pr.new/@tscircuit/modelprinter@7a038f3"
+    "@tscircuit/modelprinter": "https://pkg.pr.new/@tscircuit/modelprinter@7a038f3",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.9",
-    "@tscircuit/alphabet": "^0.0.24",
+    "@tscircuit/circuit-json-to-drawing": "https://jscdn.tscircuit.com/@tscircuit/circuit-json-to-drawing/0.0.7.tgz",
     "@types/react": "^19.1.0",
     "bun-types": "^1.4.0",
-    "gl-matrix": "^3.4.4",
-    "looks-same": "^10.0.1",
-    "poppygl": "^0.0.37",
-    "react-dom": "19.1.0",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
-    "jscad-fiber": "0.0.93",
+    "circuit-json-to-gltf": "0.0.166",
+    "poppygl": "0.0.39",
     "react": "19.1.0",
-    "three": "^0.179.1"
+    "tscircuit": "0.0.3237",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   }
 }
